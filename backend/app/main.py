@@ -1,6 +1,7 @@
 import logging
 import time
 
+from app.market_snapshot import MarketSnapshot
 from app.market_insights import generate_market_insights
 from app.recommendation_engine import generate_recommendation
 from app.stock_data import get_stock_price
@@ -29,6 +30,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 NewsArticle.metadata.create_all(bind=engine)
+MarketSnapshot.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
@@ -139,7 +141,8 @@ def market_analysis():
 
         analyzed_news.append({
             "title": article["title"],
-            "sentiment": sentiment["label"]
+            "sentiment": sentiment["label"],
+            "confidence": sentiment["score"]
         })
 
     analytics = calculate_market_sentiment(analyzed_news)
@@ -148,9 +151,25 @@ def market_analysis():
         analytics["market_sentiment_score"]
     )
 
+    db = SessionLocal()
+
+    snapshot = MarketSnapshot(
+        market_sentiment_score=analytics["market_sentiment_score"],
+        market_mood=analytics["market_mood"],
+        positive_news=analytics["positive_news"],
+        negative_news=analytics["negative_news"],
+        neutral_news=analytics["neutral_news"],
+        volatility_index=analytics["volatility_index"],
+        sentiment_strength=analytics["sentiment_strength"]
+    )
+
+    db.add(snapshot)
+    db.commit()
+    db.close()
+
     elapsed_time = round(time.time() - start_time, 2)
 
-    logger.info(f"Market analysis completed in {elapsed_time} seconds")
+    logger.info(f"Market analysis completed and snapshot saved in {elapsed_time} seconds")
 
     return analytics
 
