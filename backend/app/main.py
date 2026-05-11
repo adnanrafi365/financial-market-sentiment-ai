@@ -1,3 +1,4 @@
+from app.recommendation_engine import generate_recommendation
 from app.stock_data import get_stock_price
 from app.trend_analysis import calculate_sentiment_trend
 from app.ticker_analytics import calculate_ticker_sentiment
@@ -107,6 +108,10 @@ def market_analysis():
         })
 
     analytics = calculate_market_sentiment(analyzed_news)
+
+    analytics["recommendation"] = generate_recommendation(
+        analytics["market_sentiment_score"]
+    )
 
     return analytics
 
