@@ -1,6 +1,7 @@
 import logging
 import time
 
+from app.forecasting import generate_market_forecast
 from app.market_snapshot import MarketSnapshot
 from app.market_insights import generate_market_insights
 from app.recommendation_engine import generate_recommendation
@@ -247,3 +248,20 @@ def market_insights():
     return {
         "insights": insights
     }
+
+@app.get("/market-forecast")
+def market_forecast():
+
+    logger.info("Market forecast endpoint called")
+
+    db = SessionLocal()
+
+    snapshots = db.query(MarketSnapshot).all()
+
+    forecast = generate_market_forecast(snapshots)
+
+    db.close()
+
+    logger.info("Market forecast generated successfully")
+
+    return forecast
