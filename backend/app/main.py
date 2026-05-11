@@ -1,3 +1,4 @@
+from app.market_insights import generate_market_insights
 from app.recommendation_engine import generate_recommendation
 from app.stock_data import get_stock_price
 from app.trend_analysis import calculate_sentiment_trend
@@ -156,3 +157,15 @@ def stock_price(ticker: str):
     stock_data = get_stock_price(ticker.upper())
 
     return stock_data
+
+@app.get("/market-insights")
+def market_insights():
+
+    market_data = market_analysis()
+    ticker_data = ticker_analysis()
+
+    insights = generate_market_insights(market_data, ticker_data)
+
+    return {
+        "insights": insights
+    }
