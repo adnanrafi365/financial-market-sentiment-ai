@@ -20,12 +20,36 @@ refresh_button = st.button("🔄 Refresh Market Data")
 market_response = requests.get(f"{API_URL}/market-analysis")
 market_data = market_response.json()
 
+stock_response = requests.get(f"{API_URL}/stock/AAPL")
+stock_data = stock_response.json()
+
 col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("Total Articles", market_data["total_articles"])
 col2.metric("Positive News", market_data["positive_news"])
 col3.metric("Negative News", market_data["negative_news"])
 col4.metric("Market Mood", market_data["market_mood"])
+
+st.divider()
+
+st.subheader("Live Stock Market Data")
+
+stock_col1, stock_col2, stock_col3 = st.columns(3)
+
+stock_col1.metric(
+    "Apple Price",
+    f"${stock_data['current_price']}"
+)
+
+stock_col2.metric(
+    "Market Cap",
+    f"{round(stock_data['market_cap'] / 1000000000000, 2)}T"
+)
+
+stock_col3.metric(
+    "Volume",
+    stock_data["volume"]
+)
 
 st.divider()
 

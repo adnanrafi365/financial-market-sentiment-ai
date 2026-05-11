@@ -1,3 +1,4 @@
+from app.stock_data import get_stock_price
 from app.trend_analysis import calculate_sentiment_trend
 from app.ticker_analytics import calculate_ticker_sentiment
 from app.analytics import calculate_market_sentiment
@@ -143,3 +144,10 @@ def sentiment_trend():
     db.close()
 
     return trend_data
+
+@app.get("/stock/{ticker}")
+def stock_price(ticker: str):
+
+    stock_data = get_stock_price(ticker.upper())
+
+    return stock_data
