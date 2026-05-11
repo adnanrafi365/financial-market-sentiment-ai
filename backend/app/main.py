@@ -1,3 +1,4 @@
+from app.analytics import calculate_market_sentiment
 from app.database import engine, SessionLocal
 from app.models import NewsArticle
 from app.sentiment import analyze_sentiment
@@ -82,3 +83,23 @@ def get_history():
     db.close()
 
     return history
+
+@app.get("/market-analysis")
+def market_analysis():
+
+    news = fetch_financial_news(NEWS_API_KEY)
+
+    analyzed_news = []
+
+    for article in news:
+
+        sentiment = analyze_sentiment(article["title"])
+
+        analyzed_news.append({
+            "title": article["title"],
+            "sentiment": sentiment["label"]
+        })
+
+    analytics = calculate_market_sentiment(analyzed_news)
+
+    return analytics
