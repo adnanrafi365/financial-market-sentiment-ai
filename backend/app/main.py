@@ -1,6 +1,6 @@
 import logging
 import time
-
+from app.ml_model import train_market_model
 from app.forecasting import generate_market_forecast
 from app.market_snapshot import MarketSnapshot
 from app.market_insights import generate_market_insights
@@ -265,3 +265,20 @@ def market_forecast():
     logger.info("Market forecast generated successfully")
 
     return forecast
+
+@app.get("/ml-prediction")
+def ml_prediction():
+
+    logger.info("ML prediction endpoint called")
+
+    db = SessionLocal()
+
+    snapshots = db.query(MarketSnapshot).all()
+
+    prediction = train_market_model(snapshots)
+
+    db.close()
+
+    logger.info("ML prediction generated successfully")
+
+    return prediction
