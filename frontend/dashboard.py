@@ -55,6 +55,11 @@ news_data = fetch_api("/news")
 ticker_data = fetch_api("/ticker-analysis")
 ml_prediction_data = fetch_api("/ml-prediction")
 
+copilot_question = st.text_input(
+    "Ask the AI Financial Copilot",
+    placeholder="What is the market mood?"
+)
+
 if market_data is None:
     st.stop()
 
@@ -443,6 +448,30 @@ else:
     st.warning("Sentiment trend data is currently unavailable.")
 
 st.divider()
+
+st.subheader("AI Financial Copilot")
+
+if copilot_question:
+
+    encoded_question = copilot_question.replace(
+        " ",
+        "%20"
+    )
+
+    copilot_response = fetch_api(
+        f"/copilot?question={encoded_question}"
+    )
+
+    if copilot_response is not None:
+
+        st.success(
+            copilot_response.get(
+                "answer",
+                "No response generated."
+            )
+        )
+
+        st.json(copilot_response)
 
 st.subheader("Latest Financial News Intelligence Feed")
 
