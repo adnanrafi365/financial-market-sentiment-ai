@@ -48,9 +48,12 @@ st.caption("Institutional-style AI market sentiment and multi-asset intelligence
 refresh_button = st.button("🔄 Refresh Market Data")
 
 market_data = fetch_api("/market-analysis")
+forecast_data = fetch_api("/market-forecast")
 insights_data = fetch_api("/market-insights")
 trend_data = fetch_api("/sentiment-trend")
 news_data = fetch_api("/news")
+ticker_data = fetch_api("/ticker-analysis")
+ml_prediction_data = fetch_api("/ml-prediction")
 
 if market_data is None:
     st.stop()
@@ -77,35 +80,12 @@ st.subheader("Executive Market Overview")
 
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
-col1.metric(
-    "Total Articles",
-    market_data["total_articles"]
-)
-
-col2.metric(
-    "Positive",
-    market_data["positive_news"]
-)
-
-col3.metric(
-    "Negative",
-    market_data["negative_news"]
-)
-
-col4.metric(
-    "Neutral",
-    market_data["neutral_news"]
-)
-
-col5.metric(
-    "Market Mood",
-    market_data["market_mood"]
-)
-
-col6.metric(
-    "AI Signal",
-    market_data["recommendation"]
-)
+col1.metric("Total Articles", market_data["total_articles"])
+col2.metric("Positive", market_data["positive_news"])
+col3.metric("Negative", market_data["negative_news"])
+col4.metric("Neutral", market_data["neutral_news"])
+col5.metric("Market Mood", market_data["market_mood"])
+col6.metric("AI Signal", market_data["recommendation"])
 
 st.divider()
 
@@ -148,6 +128,58 @@ gauge_fig = go.Figure(
 )
 
 st.plotly_chart(gauge_fig, width="stretch")
+
+st.divider()
+
+st.subheader("AI Market Forecast")
+
+if forecast_data is not None:
+
+    f1, f2, f3, f4 = st.columns(4)
+
+    f1.metric("Forecast", forecast_data["forecast"])
+    f2.metric("Confidence", forecast_data["confidence"])
+    f3.metric("Momentum", forecast_data["momentum"])
+    f4.metric("Risk Level", forecast_data["risk_level"])
+
+    forecast_detail_col1, forecast_detail_col2, forecast_detail_col3 = st.columns(3)
+
+    forecast_detail_col1.metric(
+        "Average Sentiment",
+        forecast_data.get("average_sentiment_score", "N/A")
+    )
+
+    forecast_detail_col2.metric(
+        "Latest Sentiment",
+        forecast_data.get("latest_sentiment_score", "N/A")
+    )
+
+    forecast_detail_col3.metric(
+        "Average Volatility",
+        forecast_data.get("average_volatility", "N/A")
+    )
+
+    confidence_fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=forecast_data["confidence"],
+            title={"text": "Forecast Confidence"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "white"},
+                "steps": [
+                    {"range": [0, 30], "color": "#444444"},
+                    {"range": [30, 70], "color": "#B8860B"},
+                    {"range": [70, 100], "color": "#006400"}
+                ],
+            }
+        )
+    )
+
+    st.plotly_chart(confidence_fig, width="stretch")
+
+else:
+    st.warning("AI market forecast is currently unavailable.")
 
 st.divider()
 
@@ -226,6 +258,167 @@ bar_fig = px.bar(
 )
 
 st.plotly_chart(bar_fig, width="stretch")
+
+st.divider()
+
+st.subheader("AI Machine Learning Prediction Engine")
+
+if ml_prediction_data is not None:
+
+    ml_col1, ml_col2, ml_col3, ml_col4 = st.columns(4)
+
+    ml_col1.metric(
+        "Predicted Direction",
+        ml_prediction_data.get(
+            "predicted_market_direction",
+            "N/A"
+        )
+    )
+
+    ml_col2.metric(
+        "Model Accuracy",
+        ml_prediction_data.get(
+            "model_accuracy",
+            "N/A"
+        )
+    )
+
+    ml_col3.metric(
+        "Bullish Probability",
+        ml_prediction_data.get(
+            "bullish_probability",
+            "N/A"
+        )
+    )
+
+    ml_col4.metric(
+        "Bearish Probability",
+        ml_prediction_data.get(
+            "bearish_probability",
+            "N/A"
+        )
+    )
+
+    st.metric(
+        "Training Samples",
+        ml_prediction_data.get(
+            "training_samples",
+            "N/A"
+        )
+    )
+
+    if "bullish_probability" in ml_prediction_data and "bearish_probability" in ml_prediction_data:
+
+        probability_df = pd.DataFrame({
+            "Direction": [
+                "Bullish",
+                "Bearish"
+            ],
+            "Probability": [
+                ml_prediction_data["bullish_probability"],
+                ml_prediction_data["bearish_probability"]
+            ]
+        })
+
+        probability_fig = px.bar(
+            probability_df,
+            x="Direction",
+            y="Probability",
+            title="ML Market Direction Probability",
+            text="Probability"
+        )
+
+        st.plotly_chart(
+            probability_fig,
+            width="stretch"
+        )
+
+else:
+    st.warning("ML prediction engine data unavailable.")
+
+st.divider()
+
+st.subheader("Institutional Ticker Intelligence")
+
+if ticker_data is not None and len(ticker_data) > 0:
+
+    ticker_rows = []
+
+    for ticker, data in ticker_data.items():
+
+        ticker_rows.append({
+            "Ticker": ticker,
+            "Signal": data["signal"],
+            "Sentiment Score": data["ticker_sentiment_score"],
+            "Mentions": data["total_mentions"],
+            "Confidence": data["average_confidence"],
+            "Positive": data["positive"],
+            "Negative": data["negative"],
+            "Neutral": data["neutral"]
+        })
+
+    ticker_df = pd.DataFrame(ticker_rows)
+
+    ticker_df = ticker_df.sort_values(
+        by="Sentiment Score",
+        ascending=False
+    )
+
+    st.dataframe(
+        ticker_df,
+        width="stretch"
+    )
+
+    heatmap_fig = px.treemap(
+        ticker_df,
+        path=["Signal", "Ticker"],
+        values="Mentions",
+        color="Sentiment Score",
+        color_continuous_scale="RdYlGn",
+        title="Ticker Intelligence Heatmap"
+    )
+
+    st.plotly_chart(
+        heatmap_fig,
+        width="stretch"
+    )
+
+    bullish_df = ticker_df[
+        ticker_df["Signal"] == "Bullish"
+    ]
+
+    bearish_df = ticker_df[
+        ticker_df["Signal"] == "Bearish"
+    ]
+
+    col_bullish, col_bearish = st.columns(2)
+
+    with col_bullish:
+
+        st.subheader("Top Bullish Assets")
+
+        if not bullish_df.empty:
+            st.dataframe(
+                bullish_df,
+                width="stretch"
+            )
+        else:
+            st.info("No bullish assets detected.")
+
+    with col_bearish:
+
+        st.subheader("Top Bearish Assets")
+
+        if not bearish_df.empty:
+            st.dataframe(
+                bearish_df,
+                width="stretch"
+            )
+        else:
+            st.info("No bearish assets detected.")
+
+else:
+    st.warning("No ticker intelligence data available.")
 
 st.divider()
 
