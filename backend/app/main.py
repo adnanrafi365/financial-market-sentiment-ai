@@ -1,5 +1,6 @@
 import logging
 import time
+from app.copilot import generate_copilot_response
 from app.ml_model import train_market_model
 from app.forecasting import generate_market_forecast
 from app.market_snapshot import MarketSnapshot
@@ -282,3 +283,24 @@ def ml_prediction():
     logger.info("ML prediction generated successfully")
 
     return prediction
+
+@app.get("/copilot")
+def copilot(question: str):
+
+    logger.info(f"Copilot endpoint called with question: {question}")
+
+    market_data = market_analysis()
+    forecast_data = market_forecast()
+    ticker_data = ticker_analysis()
+
+    response = generate_copilot_response(
+        question,
+        market_data,
+        forecast_data,
+        ticker_data
+    )
+
+    return {
+        "question": question,
+        "answer": response
+    }
