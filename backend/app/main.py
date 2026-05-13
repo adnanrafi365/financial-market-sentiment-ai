@@ -1,5 +1,6 @@
 import logging
 import time
+from app.report_generator import generate_market_report
 from app.copilot import generate_copilot_response
 from app.ml_model import train_market_model
 from app.forecasting import generate_market_forecast
@@ -304,3 +305,24 @@ def copilot(question: str):
         "question": question,
         "answer": response
     }
+
+@app.get("/market-report")
+def market_report():
+
+    logger.info("Market report endpoint called")
+
+    market_data = market_analysis()
+    forecast_data = market_forecast()
+    ticker_data = ticker_analysis()
+    insights_data = market_insights()
+
+    report = generate_market_report(
+        market_data,
+        forecast_data,
+        ticker_data,
+        insights_data
+    )
+
+    logger.info("Market report generated successfully")
+
+    return report
